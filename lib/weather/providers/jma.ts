@@ -4,13 +4,14 @@ const LATEST_TIME_URL = "https://www.jma.go.jp/bosai/amedas/data/latest_time.txt
 
 function toMapFileTimestamp(latestTimeIso: string): string {
   // JMAのタイムスタンプは常に "+09:00"(JST) で返る前提。実行サーバーのローカルタイムゾーンに
-  // 依存させないよう、文字列から直接数値を取り出す（"2026-07-19T12:00:00+09:00" -> "20260719120000"）。
-  const match = latestTimeIso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/);
+  // 依存させないよう、文字列から直接数値を取り出す。map エンドポイントのファイル名は
+  // 分単位（秒は常に "00"）の "YYYYMMDDHHMM00" 形式（"2026-07-19T12:00:00+09:00" -> "20260719120000"）。
+  const match = latestTimeIso.match(/^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/);
   if (!match) {
     throw new Error(`Unexpected JMA timestamp format: ${latestTimeIso}`);
   }
-  const [, year, month, day, hour, minute, second] = match;
-  return `${year}${month}${day}${hour}${minute}${second}`;
+  const [, year, month, day, hour, minute] = match;
+  return `${year}${month}${day}${hour}${minute}00`;
 }
 
 interface AmedasPointValue {
@@ -21,10 +22,10 @@ interface AmedasPointValue {
 /**
  * 気象庁アメダスの非公式JSON APIを利用した実装（要件定義書7章）。
  *
- * NOTE: このネットワーク環境からは www.jma.go.jp への到達性を検証できなかったため、
- * 一般に知られている公開URL・レスポンス形式（latest_time.txt → map/{timestamp}.json）
- * を前提に実装している。デプロイ前に実エンドポイントへの疎通とレスポンス形式を
- * 必ず確認すること（docs/requirements.md 7章の運用注記に対応）。
+ * URL形式・レスポンス構造（latest_time.txt が返すISO時刻 → map/{YYYYMMDDHHMM00}.json、
+ * 観測所番号をキーに temp/humidity が [値, 品質コード] の配列で入る）は公開情報で裏取り済み。
+ * ただしこの開発環境からは www.jma.go.jp への実際の疎通確認はできていないため、
+ * デプロイ後に一度実データが取得できることを確認すること。
  */
 export class JmaWeatherProvider implements WeatherProvider {
   async fetchCurrentWeather(amedasCode: string): Promise<WeatherSnapshot> {

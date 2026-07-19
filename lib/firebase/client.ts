@@ -34,11 +34,13 @@ export function getFirebaseAuth(): Auth {
 
 export function getFirebaseDb(): Firestore {
   if (!dbInstance) {
-    // SafariはFirestoreのリアルタイムListen（onSnapshot）が使うストリーミング接続と
-    // 相性が悪く、"due to access control checks" というエラーで接続に失敗することがある
-    // （Firebase JS SDKの既知の問題）。ロングポーリングの自動検出を有効にして回避する。
+    // SafariはFirestoreの通信（onSnapshotのListenだけでなく書き込みのWriteチャンネルも）が
+    // "due to access control checks" というFetch APIのエラーで失敗することがある
+    // （Firebase JS SDKの既知の問題）。experimentalAutoDetectLongPollingは自動判定に
+    // 頼るため、この既知の失敗パターンを正しく検知できずストリーミングのまま失敗し続ける
+    // ケースが報告されている。判定に頼らず常にロングポーリングを使うよう強制する。
     dbInstance = initializeFirestore(getFirebaseApp(), {
-      experimentalAutoDetectLongPolling: true,
+      experimentalForceLongPolling: true,
     });
   }
   return dbInstance;

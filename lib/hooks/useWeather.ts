@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-export type WeatherFetchStatus = "fresh" | "stale-cache" | "fetched";
+export type WeatherFetchStatus = "fresh" | "stale-cache" | "fetched" | "demo";
 
 export interface WeatherData {
   temp: number;

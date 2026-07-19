@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { DemoModeBanner } from "@/components/DemoModeBanner";
 import { SettingsForm } from "@/components/SettingsForm";
 import { useAnonymousAuth } from "@/lib/firebase/useAnonymousAuth";
 import { subscribeUserSettings, DEFAULT_SETTINGS, type UserSettings } from "@/lib/firebase/settingsRepo";
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
 export default function SettingsPage() {
   const auth = useAnonymousAuth();
   const uid = auth.status === "signed-in" ? auth.user.uid : null;
+  const isDemo = auth.status === "signed-in" && auth.demo;
   const [settings, setSettings] = useState<UserSettings | null | "loading">("loading");
 
   useEffect(() => {
@@ -37,6 +39,7 @@ export default function SettingsPage() {
 
   return (
     <main className="mx-auto max-w-md space-y-4 p-6">
+      {isDemo && <DemoModeBanner />}
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold">設定</h1>
         <Link href="/" className="text-sm text-black/60 underline dark:text-white/60">

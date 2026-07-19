@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getAdminDb } from "@/lib/firebase/admin";
+import { isFirebaseAdminConfigured } from "@/lib/firebase/config";
 import { getWeatherWithCache } from "@/lib/weather/cache";
+import { getDemoWeatherSnapshot } from "@/lib/weather/demoFallback";
 import { JmaWeatherProvider } from "@/lib/weather/providers/jma";
 
 const provider = new JmaWeatherProvider();
@@ -10,6 +12,10 @@ const provider = new JmaWeatherProvider();
  * APIキー不要な気象庁を利用しているが、クライアントから直接JMAを叩かせず
  * このルート経由に統一することで、将来キー必須なソースへの切り替えも
  * サーバー側の変更のみで完結させる。
+ *
+ * Firebase（Admin SDK）が未設定の場合はキャッシュを使わずJMAへ直接問い合わせ、
+ * それも失敗する場合は固定のデモ値を返す。Firebaseプロジェクトの用意を
+ * 後回しにしてもアプリの動作を確認できるようにするための措置。
  */
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -17,6 +23,26 @@ export async function GET(request: Request) {
 
   if (!locationKey) {
     return NextResponse.json({ error: "locationKey is required" }, { status: 400 });
+  }
+
+  if (!isFirebaseAdminConfigured()) {
+    try {
+      const fetched = await provider.fetchCurrentWeather(locationKey);
+      return NextResponse.json({
+        status: "fetched",
+        temp: fetched.temp,
+        humidity: fetched.humidity,
+        fetchedAt: fetched.fetchedAt.toISOString(),
+      });
+    } catch {
+      const demo = getDemoWeatherSnapshot();
+      return NextResponse.json({
+        status: "demo",
+        temp: demo.temp,
+        humidity: demo.humidity,
+        fetchedAt: demo.fetchedAt.toISOString(),
+      });
+    }
   }
 
   const db = getAdminDb();

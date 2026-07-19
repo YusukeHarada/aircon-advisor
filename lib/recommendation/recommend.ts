@@ -3,18 +3,15 @@ import { applyCoolingHealthCorrection } from "./healthCorrection";
 import { determineMode } from "./mode";
 import { applyPersonalOffset } from "./offset";
 import { calculateCoolingSetTemperature, calculateHeatingSetTemperature } from "./setTemperature";
-import type { Recommendation, RecommendationParams, Season, WeatherInput } from "./types";
+import type { Recommendation, RecommendationParams, WeatherInput } from "./types";
 
 /**
  * 快適性（主目的）→健康（制約）→省エネ（補足）の優先順位で
  * 推奨設定温度・運転モードを算出する（要件定義書1章・5章）。
+ * 季節は運転モードから一意に決まる（冷房＝夏、暖房＝冬）ため、
+ * 呼び出し側で別途指定する必要はない。
  */
-export function recommend(
-  weather: WeatherInput,
-  personalOffset: number,
-  season: Season,
-  params: RecommendationParams,
-): Recommendation {
+export function recommend(weather: WeatherInput, personalOffset: number, params: RecommendationParams): Recommendation {
   const { mode, reason } = determineMode(weather, params);
 
   if (mode === "fan" || mode === "unnecessary") {

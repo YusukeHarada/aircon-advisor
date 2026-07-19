@@ -14,6 +14,7 @@ export const LOCATION_OPTIONS: LocationOption[] = [
   { code: "14163", label: "札幌" },
   { code: "51106", label: "名古屋" },
   { code: "82182", label: "福岡" },
+  { code: "40336", label: "つくば" },
 ];
 
 export function findLocationLabel(code: string | null): string {

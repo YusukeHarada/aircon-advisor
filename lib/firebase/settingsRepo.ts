@@ -1,5 +1,7 @@
 import { doc, onSnapshot, setDoc } from "firebase/firestore";
+import { readJson, subscribeKey, writeJson } from "@/lib/demo/localStore";
 import { DEFAULT_PARAMETERS } from "@/lib/recommendation/constants";
+import { isFirebaseClientConfigured } from "./config";
 import { getFirebaseDb } from "./client";
 
 const SETTINGS_DOC_ID = "main";
@@ -40,8 +42,16 @@ function fromDoc(data: SettingsDoc | undefined): UserSettings {
   };
 }
 
+export function demoSettingsKey(uid: string): string {
+  return `aircon-advisor:settings:${uid}`;
+}
+
 /** 初回起動時など、設定ドキュメントが未作成のユーザーを検出するために null を区別して返す */
 export function subscribeUserSettings(uid: string, callback: (settings: UserSettings | null) => void) {
+  if (!isFirebaseClientConfigured()) {
+    return subscribeKey<SettingsDoc>(demoSettingsKey(uid), (data) => callback(data ? fromDoc(data) : null));
+  }
+
   return onSnapshot(settingsDocRef(uid), (snapshot) => {
     if (!snapshot.exists()) {
       callback(null);
@@ -52,14 +62,34 @@ export function subscribeUserSettings(uid: string, callback: (settings: UserSett
 }
 
 export async function saveUserSettings(uid: string, settings: UserSettings): Promise<void> {
-  await setDoc(settingsDocRef(uid), {
+  const payload: SettingsDoc = {
     location: settings.location,
     offset: settings.offset,
     comfort_di_target: settings.comfortDiTarget,
     indoor_humidity: settings.indoorHumidity,
-  } satisfies SettingsDoc);
+  };
+
+  if (!isFirebaseClientConfigured()) {
+    writeJson(demoSettingsKey(uid), payload);
+    return;
+  }
+
+  await setDoc(settingsDocRef(uid), payload);
 }
 
+const DEFAULT_SETTINGS_DOC: SettingsDoc = {
+  location: DEFAULT_SETTINGS.location,
+  offset: DEFAULT_SETTINGS.offset,
+  comfort_di_target: DEFAULT_SETTINGS.comfortDiTarget,
+  indoor_humidity: DEFAULT_SETTINGS.indoorHumidity,
+};
+
 export async function updateOffset(uid: string, offset: number): Promise<void> {
+  if (!isFirebaseClientConfigured()) {
+    const current = readJson<SettingsDoc>(demoSettingsKey(uid)) ?? DEFAULT_SETTINGS_DOC;
+    writeJson(demoSettingsKey(uid), { ...current, offset });
+    return;
+  }
+
   await setDoc(settingsDocRef(uid), { offset }, { merge: true });
 }

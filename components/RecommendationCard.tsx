@@ -6,6 +6,7 @@ const FRESHNESS_LABELS: Record<WeatherFetchStatus, string> = {
   fresh: "",
   fetched: "",
   "stale-cache": "（気象データの取得に失敗したため、少し前のデータを表示しています）",
+  demo: "（デモ用のサンプル値です。実際の気象データではありません）",
 };
 
 function formatTemp(temp: number | null): string {

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { DemoModeBanner } from "@/components/DemoModeBanner";
 import { FeedbackButtons } from "@/components/FeedbackButtons";
 import { OnboardingForm } from "@/components/OnboardingForm";
 import { RecommendationCard } from "@/components/RecommendationCard";
@@ -18,6 +19,7 @@ export default function Home() {
   const auth = useAnonymousAuth();
   const [settings, setSettings] = useState<UserSettings | null | "loading">("loading");
   const uid = auth.status === "signed-in" ? auth.user.uid : null;
+  const isDemo = auth.status === "signed-in" && auth.demo;
 
   useEffect(() => {
     if (!uid) return;
@@ -45,7 +47,8 @@ export default function Home() {
 
   if (!settings) {
     return (
-      <main className="mx-auto max-w-md p-6">
+      <main className="mx-auto max-w-md space-y-4 p-6">
+        {isDemo && <DemoModeBanner />}
         <OnboardingForm uid={uid} />
       </main>
     );
@@ -53,6 +56,7 @@ export default function Home() {
 
   return (
     <main className="mx-auto max-w-md space-y-4 p-6">
+      {isDemo && <DemoModeBanner />}
       <div className="flex items-center justify-between">
         <h1 className="text-lg font-bold">今日の推奨</h1>
         <Link href="/settings" className="text-sm text-black/60 underline dark:text-white/60">

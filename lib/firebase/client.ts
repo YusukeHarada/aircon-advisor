@@ -1,6 +1,6 @@
 import { getApps, initializeApp, type FirebaseApp, type FirebaseOptions } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import { initializeFirestore, type Firestore } from "firebase/firestore";
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -34,7 +34,12 @@ export function getFirebaseAuth(): Auth {
 
 export function getFirebaseDb(): Firestore {
   if (!dbInstance) {
-    dbInstance = getFirestore(getFirebaseApp());
+    // SafariはFirestoreのリアルタイムListen（onSnapshot）が使うストリーミング接続と
+    // 相性が悪く、"due to access control checks" というエラーで接続に失敗することがある
+    // （Firebase JS SDKの既知の問題）。ロングポーリングの自動検出を有効にして回避する。
+    dbInstance = initializeFirestore(getFirebaseApp(), {
+      experimentalAutoDetectLongPolling: true,
+    });
   }
   return dbInstance;
 }

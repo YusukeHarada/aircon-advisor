@@ -46,19 +46,31 @@ export function demoSettingsKey(uid: string): string {
   return `aircon-advisor:settings:${uid}`;
 }
 
-/** 初回起動時など、設定ドキュメントが未作成のユーザーを検出するために null を区別して返す */
-export function subscribeUserSettings(uid: string, callback: (settings: UserSettings | null) => void) {
+/**
+ * 初回起動時など、設定ドキュメントが未作成のユーザーを検出するために null を区別して返す。
+ * onError は接続失敗時（例：Safariでの既知の問題、権限エラー等）に呼ばれる。省略時は
+ * 何も起きないまま呼び出し側が「読み込み中」で固まって見えるため、UI側では極力渡すこと。
+ */
+export function subscribeUserSettings(
+  uid: string,
+  callback: (settings: UserSettings | null) => void,
+  onError?: (error: Error) => void,
+) {
   if (!isFirebaseClientConfigured()) {
     return subscribeKey<SettingsDoc>(demoSettingsKey(uid), (data) => callback(data ? fromDoc(data) : null));
   }
 
-  return onSnapshot(settingsDocRef(uid), (snapshot) => {
-    if (!snapshot.exists()) {
-      callback(null);
-      return;
-    }
-    callback(fromDoc(snapshot.data() as SettingsDoc));
-  });
+  return onSnapshot(
+    settingsDocRef(uid),
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        callback(null);
+        return;
+      }
+      callback(fromDoc(snapshot.data() as SettingsDoc));
+    },
+    (error) => onError?.(error),
+  );
 }
 
 export async function saveUserSettings(uid: string, settings: UserSettings): Promise<void> {

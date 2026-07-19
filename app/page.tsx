@@ -17,16 +17,16 @@ export const dynamic = "force-dynamic";
 
 export default function Home() {
   const auth = useAnonymousAuth();
-  const [settings, setSettings] = useState<UserSettings | null | "loading">("loading");
+  const [settings, setSettings] = useState<UserSettings | null | "loading" | "error">("loading");
   const uid = auth.status === "signed-in" ? auth.user.uid : null;
   const isDemo = auth.status === "signed-in" && auth.demo;
 
   useEffect(() => {
     if (!uid) return;
-    return subscribeUserSettings(uid, setSettings);
+    return subscribeUserSettings(uid, setSettings, () => setSettings("error"));
   }, [uid]);
 
-  const locationKey = settings && settings !== "loading" ? settings.location : null;
+  const locationKey = settings && settings !== "loading" && settings !== "error" ? settings.location : null;
   const weather = useWeather(locationKey);
 
   if (auth.status === "loading") {
@@ -43,6 +43,14 @@ export default function Home() {
 
   if (settings === "loading") {
     return <main className="mx-auto max-w-md p-6 text-sm text-black/60 dark:text-white/60">読み込み中...</main>;
+  }
+
+  if (settings === "error") {
+    return (
+      <main className="mx-auto max-w-md p-6 text-sm text-red-600">
+        設定の読み込みに失敗しました。ページを再読み込みしてください。
+      </main>
+    );
   }
 
   if (!settings) {

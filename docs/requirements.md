@@ -160,7 +160,7 @@ API呼び出しと `weather_cache` への書き込みは Next.js のサーバー
 - 観測データ（全国一括）：`GET https://www.jma.go.jp/bosai/amedas/data/map/{YYYYMMDDHHMM00}.json`（分単位、秒は常に `00`）。観測所番号をキーに、`temp`（気温）・`humidity`（湿度）等が `[値, 品質コード]` の配列で入る
 - 観測所一覧：`GET https://www.jma.go.jp/bosai/amedas/const/amedastable.json`
 
-これらの仕様はWeb検索により公開情報で裏取り済み（開発環境から実際にJMAへ疎通確認はできていないため、デプロイ後に一度実データ取得を確認すること）。
+これらの仕様はWeb検索により公開情報で裏取り済み。本番環境（https://aircon-advisor.vercel.app）にデプロイし、実データ取得も確認済み。
 
 ## 8. 画面構成
 
@@ -178,6 +178,7 @@ API呼び出しと `weather_cache` への書き込みは Next.js のサーバー
 - パラメータ（DI目標値、閾値、マスタ）は Firestore の設定コレクション（例：`config/parameters`）で管理し、コード変更・再デプロイなしにチューニングできるようにする
 - Firestoreセキュリティルール：`users/{uid}/*` は本人（認証済みuid一致）のみ読み書き可、`weather_cache/*` は認証済みユーザーであれば読み取り可、書き込みはサーバー側（Admin SDK経由）のみに限定する
 - 通知・プッシュリマインドはMVP対象外とする。ユーザーが能動的にアプリを開いた際にのみ推奨を提示する
+- Safari対応：FirestoreのリアルタイムListen/Write接続がSafariの `http(s)://` 環境で `due to access control checks` エラーにより失敗することがある（Firebase JS SDKの既知の問題）。`initializeFirestore` に `experimentalForceLongPolling: true` を指定して回避する（`lib/firebase/client.ts`）
 
 ## 10. 決定ログ
 

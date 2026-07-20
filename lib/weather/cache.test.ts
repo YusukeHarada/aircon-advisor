@@ -64,7 +64,7 @@ describe("getWeatherWithCache", () => {
 
   it("新鮮なキャッシュがあればプロバイダを呼ばずに返す", async () => {
     const now = new Date("2026-07-19T12:00:00+09:00");
-    const { db } = createFakeDb([{ temp: 30, humidity: 60, fetched_at: new Date("2026-07-19T09:00:00+09:00") }]);
+    const { db } = createFakeDb([{ temp: 30, humidity: 60, fetched_at: new Date("2026-07-19T11:30:00+09:00") }]);
     const provider = fakeProvider(new Error("should not be called"));
 
     // @ts-expect-error フェイクdbのため型を緩める
@@ -72,7 +72,7 @@ describe("getWeatherWithCache", () => {
 
     expect(result).toEqual({
       status: "fresh",
-      weather: { temp: 30, humidity: 60, fetchedAt: new Date("2026-07-19T09:00:00+09:00") },
+      weather: { temp: 30, humidity: 60, fetchedAt: new Date("2026-07-19T11:30:00+09:00") },
     });
     expect(provider.fetchCurrentWeather).not.toHaveBeenCalled();
   });

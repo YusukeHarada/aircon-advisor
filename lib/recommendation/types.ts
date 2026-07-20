@@ -18,6 +18,8 @@ export interface RecommendationParams {
   highHumidityThreshold: number;
   midSeasonComfortableTempRange: { min: number; max: number };
   maxIndoorOutdoorTempGap: number;
+  /** 熱中症予防のための冷房設定温度の絶対上限（℃）。温度差ガードレールより優先される。 */
+  maxSafeCoolingTemp: number;
   energySavingOffset: number;
   personalOffsetRange: { min: number; max: number };
   /** 提案する設定温度の丸め幅（℃）。多くのエアコンリモコンの操作粒度に合わせる。 */

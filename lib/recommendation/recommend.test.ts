@@ -13,9 +13,15 @@ describe("recommend", () => {
   it("猛暑日で健康補正が効くケース（極端に低い目標DIでも下限より下がらない）", () => {
     const params = { ...DEFAULT_PARAMETERS, comfortDiTarget: 60 };
     const result = recommend({ outdoorTemp: 35, outdoorHumidity: 60 }, 0, params);
-    // 下限は 35 - 7 = 28
-    expect(result.mainSetTemp).toBeGreaterThanOrEqual(28);
+    // 温度差ガードレールの下限は35-7=28だが、熱中症予防の絶対上限27の方が低いためそちらが下限になる。
+    expect(result.mainSetTemp).toBeGreaterThanOrEqual(27);
     expect(result.healthCorrectionApplied).toBe(true);
+  });
+
+  it("猛暑日でも熱中症予防の絶対上限を超えて提案しない", () => {
+    const result = recommend({ outdoorTemp: 40, outdoorHumidity: 60 }, 0, DEFAULT_PARAMETERS);
+    // 温度差ガードレールなら下限33になるところ、絶対上限27の方を優先する。
+    expect(result.mainSetTemp).toBe(27);
   });
 
   it("寒い日は暖房＋省エネ別案（-1℃）を返す", () => {

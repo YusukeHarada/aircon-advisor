@@ -19,6 +19,12 @@ export const DEFAULT_PARAMETERS = {
   midSeasonComfortableTempRange: { min: 20, max: 23 },
   /** 5.5: 室内外温度差の上限（冷房時の設定温度下限を outdoorTemp - この値でクリップ） */
   maxIndoorOutdoorTempGap: 7,
+  /**
+   * 5.5: 熱中症予防の観点での冷房設定温度の絶対上限。猛暑日は温度差ガードレール
+   * （outdoorTemp - maxIndoorOutdoorTempGap）の方が高くなることがあるが、その場合は
+   * この絶対上限を優先する（室温を上げすぎない）。
+   */
+  maxSafeCoolingTemp: 27,
   /** 5.6: 省エネ別案のオフセット（夏は+、冬は-） */
   energySavingOffset: 1,
   /** 5.7: 個人オフセットの許容範囲 */

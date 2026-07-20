@@ -2,6 +2,7 @@ import { calculateEnergySavingSetTemperature } from "./energySaving";
 import { applyCoolingHealthCorrection } from "./healthCorrection";
 import { determineMode } from "./mode";
 import { applyPersonalOffset } from "./offset";
+import { roundToStep } from "./rounding";
 import { calculateCoolingSetTemperature, calculateHeatingSetTemperature } from "./setTemperature";
 import type { Recommendation, RecommendationParams, WeatherInput } from "./types";
 
@@ -30,7 +31,7 @@ export function recommend(weather: WeatherInput, personalOffset: number, params:
     const withOffset = applyPersonalOffset(comfortTemp, personalOffset);
     return {
       mode,
-      mainSetTemp: withOffset,
+      mainSetTemp: roundToStep(withOffset, params.displayTempStep),
       energySavingSetTemp: null,
       healthCorrectionApplied: true,
       reason,
@@ -40,8 +41,11 @@ export function recommend(weather: WeatherInput, personalOffset: number, params:
   if (mode === "cooling") {
     const comfortTemp = calculateCoolingSetTemperature(params.comfortDiTarget, params.indoorHumidity);
     const { correctedTemp, applied } = applyCoolingHealthCorrection(comfortTemp, weather.outdoorTemp, params);
-    const mainSetTemp = applyPersonalOffset(correctedTemp, personalOffset);
-    const energySavingSetTemp = calculateEnergySavingSetTemperature(mainSetTemp, "summer", params.energySavingOffset);
+    const mainSetTemp = roundToStep(applyPersonalOffset(correctedTemp, personalOffset), params.displayTempStep);
+    const energySavingSetTemp = roundToStep(
+      calculateEnergySavingSetTemperature(mainSetTemp, "summer", params.energySavingOffset),
+      params.displayTempStep,
+    );
 
     return {
       mode,
@@ -54,8 +58,11 @@ export function recommend(weather: WeatherInput, personalOffset: number, params:
 
   // mode === "heating"
   const baseTemp = calculateHeatingSetTemperature(params.heatingBaseRoomTemp);
-  const mainSetTemp = applyPersonalOffset(baseTemp, personalOffset);
-  const energySavingSetTemp = calculateEnergySavingSetTemperature(mainSetTemp, "winter", params.energySavingOffset);
+  const mainSetTemp = roundToStep(applyPersonalOffset(baseTemp, personalOffset), params.displayTempStep);
+  const energySavingSetTemp = roundToStep(
+    calculateEnergySavingSetTemperature(mainSetTemp, "winter", params.energySavingOffset),
+    params.displayTempStep,
+  );
 
   return {
     mode,

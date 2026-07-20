@@ -25,4 +25,6 @@ export const DEFAULT_PARAMETERS = {
   personalOffsetRange: { min: -2, max: 2 },
   /** 5.7: 1件のフィードバックが動かすオフセット量 */
   feedbackOffsetStep: 0.5,
+  /** 提案する設定温度の丸め幅（多くのエアコンリモコンは0.5℃刻みでしか設定できないため） */
+  displayTempStep: 0.5,
 } as const;

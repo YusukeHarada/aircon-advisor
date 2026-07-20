@@ -43,4 +43,13 @@ describe("recommend", () => {
     const withOffset = recommend({ outdoorTemp: 35, outdoorHumidity: 60 }, -1, DEFAULT_PARAMETERS);
     expect(withOffset.mainSetTemp).toBeCloseTo((withoutOffset.mainSetTemp as number) - 1, 5);
   });
+
+  it("提案温度はエアコンのリモコン粒度に合わせて0.5℃刻みに丸められる", () => {
+    // comfortDiTarget=71, indoorHumidity=55 の生の計算値は約24.04℃（グリッドから外れる）。
+    // 健康補正が効かない外気温（下限が十分低い）で検証する。
+    const result = recommend({ outdoorTemp: 30, outdoorHumidity: 40 }, 0, DEFAULT_PARAMETERS);
+    expect(result.mode).toBe("cooling");
+    const mainSetTemp = result.mainSetTemp as number;
+    expect(mainSetTemp * 2).toBeCloseTo(Math.round(mainSetTemp * 2), 10);
+  });
 });

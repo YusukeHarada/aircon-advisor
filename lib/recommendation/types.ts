@@ -20,6 +20,8 @@ export interface RecommendationParams {
   maxIndoorOutdoorTempGap: number;
   energySavingOffset: number;
   personalOffsetRange: { min: number; max: number };
+  /** 提案する設定温度の丸め幅（℃）。多くのエアコンリモコンの操作粒度に合わせる。 */
+  displayTempStep: number;
 }
 
 export interface Recommendation {
